@@ -1,0 +1,22 @@
+version: "3.8"
+services:
+
+  promtail: 
+    image: grafana/promtail:latest
+    container_name: project-promtail
+    volumes: 
+      - ./promtail/promtail-docker-config.yml:/etc/promtail/docker-config.yaml
+      - ./logs/application.log:/var/log/application.log
+    command: "--config.file=/etc/promtail/docker-config.yaml"
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus-data:/prometheus
+    container_name: project-prometheus
+volumes:
+  prometheus-data:
+    driver: local

@@ -1,0 +1,65 @@
+version: "3.8"
+services:
+  proj:
+    build: .
+    ports:
+      - 8081:8080
+    environment:
+      - DB_URL_JAVALIN=jdbc:postgresql://database-1.cxb5omurn40k.us-east-1.rds.amazonaws.com:5432/postgres
+      - DB_USER=postgres
+      - DB_PASS=elephant
+    container_name: data-container
+    depends_on:
+      - postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      
+  promtail: 
+    image: grafana/promtail:latest
+    container_name: proj-promtail
+    volumes: 
+      - ./loki/promtail/promtail-docker-config.yml:/etc/promtail/docker-config.yaml
+      - ./logs/application.log:/var/log/application.log
+    command: "--config.file=/etc/promtail/docker-config.yaml"
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - 9090:9090
+    volumes:
+      - ./loki/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    container_name: proj-prometheus    
+
+  postgres:
+    image: postgres
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=elephant 
+    container_name: postgres-container
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    
+  loki:
+    image: grafana/loki:latest
+    container_name: proj-loki
+    ports:
+      - 3100:3100
+      
+  grafana:
+    image: grafana/grafana:latest
+    container_name: proj-grafana
+    volumes:
+      - grafana-data:/var/lib/grafana -d
+    ports:
+      - 3000:3000
+    depends_on:
+      - loki
+volumes:
+  grafana-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  db-data:
+    driver: local
