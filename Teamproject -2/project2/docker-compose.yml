@@ -1,0 +1,91 @@
+version: "3.8"   # match to docker engine version
+
+services:
+  project1v2:
+      build: .
+      ports:
+        - 8081:8080
+      environment:
+        - url=jdbc:postgresql://postgres:5432/postgres
+        - username=postgres
+        - password=pass
+      container_name: project1v2-container
+      depends_on:
+        - postgres
+      volumes:
+        - ./logs/application.log:/logs/application.log
+        
+#  logging:
+#      build: .
+#      ports:
+#       - 8082:8080
+#      environment:
+#        - url=jdbc:postgresql://postgres:5432/postgres
+#        - username=postgres
+#        - password=pass
+#      container_name: project1v2
+#      volumes:
+#       - ./logs/application.log:/logs/application.log
+       
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail-container
+    volumes:
+      - ./loki-stack/promtail/promtail-docker-config.yml:/etc/promtail/docker-config.yaml
+      - ./logs/application.log:/var/log/application.log
+    command: "--config.file=/etc/promtail/docker-config.yaml" 
+    
+  loki:
+    image: grafana/loki:latest
+    container_name: loki-container
+    ports:
+     - 3100:3100
+     
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana-container
+    volumes:
+      - grafana-data:/var/lib/grafana
+    # persisting grafana settings
+    ports:
+      - 3000:3000
+    depends_on:
+      - loki
+      
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - 9090:9090
+    volumes:
+      - ./loki-stack/prometheus/prometheus.yml:/etc/prometheus/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    container_name: prometheus-container
+    
+  postgres:
+    image: postgres
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=pass
+    container_name: postgres-container
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      
+#  alertmanager:
+#    image: prom/alertmanager:latest
+#    volumes:
+#          - ./alertmanager:/etc/alertmanager
+#    command:
+#           - '--config.file=/etc/alertmanager/alertmanager.yml'
+#           - '--storage.path=/alertmanager'
+#    ports:
+#          - 9093:9093
+#    container_name: logging-alertmanager
+
+volumes:
+  db-data:
+    driver: local
+  grafana-data:
+    driver: local
+  prometheus-data:
+    driver: local

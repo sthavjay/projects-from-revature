@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: project2-service-monitor
+  namespace: teamww
+  labels:
+    app: project2-app
+    release: prom
+spec:
+  endpoints:
+   - path: /actuator/prometheus
+     interval: 20s
+     port: http
+  namespaceSelector:
+    matchNames:
+    - teamww
+  selector:
+    matchLabels:
+      app: project2-app

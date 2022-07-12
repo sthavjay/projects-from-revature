@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: project2-deployment 
+  namespace: teamww
+  labels:
+    name: project2-app 
+spec:  
+  replicas: 1
+  minReadySeconds: 5
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: project2-app
+  template:
+    metadata:
+      labels:
+        app: project2-app
+    spec:
+      containers:
+      - name: project2-container
+        image: jorgemongelos/project2:latest 
+        resources:
+          requests:
+            cpu: "100m"
+          limits:
+            cpu: "150m"
+        ports:
+        - containerPort: 8080
+        env:
+          - name: DB_URL
+            value: jdbc:postgresql://postgres-service:5432/postgres
+          - name: DB_USER
+            value: postgres
+          - name: DB_PASS
+            value: pass
+          # could add an env var for spring profile value: prod
+        volumeMounts:
+          - mountPath: /logs
+            name: logs
+      - name: promtail-container
+        image: grafana/promtail
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        args:
+        - -config.file=/etc/promtail/promtail.yml
+        volumeMounts:
+        - name: logs
+          mountPath: /logsadd
+        - name: promtail-config
+          mountPath: /etc/promtail
+      volumes:
+        - name: logs
+          emptyDir: {}
+        - name: promtail-config
+          configMap:
+            name: promtail-config

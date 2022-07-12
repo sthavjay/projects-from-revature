@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: postgres-pod
+  namespace: teamww
+  labels:
+    app: postgres
+spec:
+  containers:
+  - name: postgres-container
+    image: postgres
+    ports:
+      - containerPort: 5432
+    env:
+      - name: POSTGRES_USER
+        value: postgres
+      - name: POSTGRES_PASSWORD
+        value: pass
+      - name: POSTGRES_URL
+        value: jdbc:postgresql://postgres:5432/postgres
+      - name: PGDATA
+        value: /var/lib/postgresql/data/pgdata
+    volumeMounts:
+      - mountPath: /var/lib/postgresql/data
+        name: db-data
+  volumes:
+    - name: db-data
+      emptyDir: {}

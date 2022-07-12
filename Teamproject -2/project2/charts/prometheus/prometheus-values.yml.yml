@@ -1,0 +1,8 @@
+grafana:
+  enabled: true
+  sidecar:
+    datasources:
+      enabled: true
+  grafana.ini:
+    server:
+      root_url: http://a05e5eb550b564f2497aa4415dcd42b5-1947075445.us-east-1.elb.amazonaws.com/grafana

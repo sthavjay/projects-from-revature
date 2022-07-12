@@ -1,0 +1,28 @@
+loki:
+  enabled: true
+  isDefault: true
+  persistence:
+    enabled: true
+    resources: 
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+       cpu: 100m
+       memory: 128Mi
+
+promtail:
+  enabled: true
+  config:
+    lokiAddress: http://{{ .Release.Name }}:3100/loki/api/v1/push
+
+# grafana:
+#   enabled: true
+#   sidecar:
+#     datasources:
+#       enabled: true
+#   image:
+#     tag: 8.3.5
+
+
+
